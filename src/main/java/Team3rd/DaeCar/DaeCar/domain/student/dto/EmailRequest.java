@@ -1,6 +1,6 @@
-package Team3rd.DaeCar.DaeCar.studentFillter.dto;
+package Team3rd.DaeCar.DaeCar.domain.student.dto;
 
-import Team3rd.DaeCar.DaeCar.studentFillter.utill.SchoolDomainMapper;
+import Team3rd.DaeCar.DaeCar.domain.student.util.SchoolDomainMapper;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,4 +1,4 @@
-package Team3rd.DaeCar.DaeCar.studentFillter.dto;
+package Team3rd.DaeCar.DaeCar.domain.student.dto;
 
 import lombok.Getter;
 import lombok.Setter;

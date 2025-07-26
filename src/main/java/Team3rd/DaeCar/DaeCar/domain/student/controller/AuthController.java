@@ -1,11 +1,11 @@
-package Team3rd.DaeCar.DaeCar.studentFillter.controller;
+package Team3rd.DaeCar.DaeCar.domain.student.controller;
 
-import Team3rd.DaeCar.DaeCar.studentFillter.dto.CodeVerificationRequest;
-import Team3rd.DaeCar.DaeCar.studentFillter.dto.EmailRequest;
-import Team3rd.DaeCar.DaeCar.studentFillter.dto.SignUpRequest;
-import Team3rd.DaeCar.DaeCar.studentFillter.service.AuthCodeStorage;
-import Team3rd.DaeCar.DaeCar.studentFillter.service.AuthService;
-import Team3rd.DaeCar.DaeCar.studentFillter.utill.SchoolDomainMapper;
+import Team3rd.DaeCar.DaeCar.domain.student.dto.CodeVerificationRequest;
+import Team3rd.DaeCar.DaeCar.domain.student.dto.EmailRequest;
+import Team3rd.DaeCar.DaeCar.domain.student.dto.SignUpRequest;
+import Team3rd.DaeCar.DaeCar.domain.student.service.AuthCodeStorage;
+import Team3rd.DaeCar.DaeCar.domain.student.service.AuthService;
+import Team3rd.DaeCar.DaeCar.domain.student.util.SchoolDomainMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

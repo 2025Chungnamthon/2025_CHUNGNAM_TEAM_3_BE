@@ -1,5 +1,6 @@
 package Team3rd.DaeCar.DaeCar.domain.chat.entity;
 
+import Team3rd.DaeCar.DaeCar.domain.chat.enums.MessageType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -32,10 +33,6 @@ public class ChatMessage {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-    }
-
-    public enum MessageType {
-        CHAT, JOIN, LEAVE
     }
 
     public Long getId() {

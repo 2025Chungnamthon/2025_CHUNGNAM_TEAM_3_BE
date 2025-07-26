@@ -1,13 +1,13 @@
 package Team3rd.DaeCar.DaeCar.domain.chat.dto;
 
-import Team3rd.DaeCar.DaeCar.domain.chat.entity.ChatMessage;
+import Team3rd.DaeCar.DaeCar.domain.chat.enums.MessageType;
 
 public class ChatMessageRequest {
     private Long roomId;
     private String senderId;
     private String senderName;
     private String content;
-    private ChatMessage.MessageType messageType;
+    private MessageType messageType;
 
     public Long getRoomId() {
         return roomId;
@@ -41,11 +41,11 @@ public class ChatMessageRequest {
         this.content = content;
     }
 
-    public ChatMessage.MessageType getMessageType() {
+    public MessageType getMessageType() {
         return messageType;
     }
 
-    public void setMessageType(ChatMessage.MessageType messageType) {
+    public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
     }
 }

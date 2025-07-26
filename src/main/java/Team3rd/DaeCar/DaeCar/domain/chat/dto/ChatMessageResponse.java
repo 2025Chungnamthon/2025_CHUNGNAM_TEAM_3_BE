@@ -1,6 +1,7 @@
 package Team3rd.DaeCar.DaeCar.domain.chat.dto;
 
 import Team3rd.DaeCar.DaeCar.domain.chat.entity.ChatMessage;
+import Team3rd.DaeCar.DaeCar.domain.chat.enums.MessageType;
 import java.time.LocalDateTime;
 
 public class ChatMessageResponse {
@@ -9,7 +10,7 @@ public class ChatMessageResponse {
     private String senderId;
     private String senderName;
     private String content;
-    private ChatMessage.MessageType messageType;
+    private MessageType messageType;
     private LocalDateTime createdAt;
 
     public ChatMessageResponse() {}
@@ -64,11 +65,11 @@ public class ChatMessageResponse {
         this.content = content;
     }
 
-    public ChatMessage.MessageType getMessageType() {
+    public MessageType getMessageType() {
         return messageType;
     }
 
-    public void setMessageType(ChatMessage.MessageType messageType) {
+    public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
     }
 
