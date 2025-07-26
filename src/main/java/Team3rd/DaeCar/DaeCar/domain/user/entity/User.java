@@ -47,6 +47,10 @@ public class User implements UserDetails {
     @Column(name = "driver_license_verified", nullable = false)
     private Boolean driverLicenseVerified = false;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_verification_status", nullable = false)
+    private StudentVerificationStatus studentVerificationStatus = StudentVerificationStatus.PENDING;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -58,6 +62,12 @@ public class User implements UserDetails {
     
     public enum Gender {
         MALE, FEMALE
+    }
+    
+    public enum StudentVerificationStatus {
+        PENDING,
+        VERIFIED,
+        REJECTED
     }
     
     @PrePersist
@@ -149,6 +159,14 @@ public class User implements UserDetails {
     
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+    
+    public StudentVerificationStatus getStudentVerificationStatus() {
+        return studentVerificationStatus;
+    }
+    
+    public void setStudentVerificationStatus(StudentVerificationStatus studentVerificationStatus) {
+        this.studentVerificationStatus = studentVerificationStatus;
     }
     
     @Override

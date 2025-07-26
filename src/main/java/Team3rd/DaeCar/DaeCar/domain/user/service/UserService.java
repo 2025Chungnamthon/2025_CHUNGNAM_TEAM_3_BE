@@ -82,4 +82,26 @@ public class UserService {
         user.setDriverLicenseVerified(verified);
         userRepository.save(user);
     }
+    
+    public StudentVerificationResponse requestStudentVerification(Long userId, StudentVerificationRequest request) {
+        User user = userRepository.findByIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+        
+        user.setStudentVerificationStatus(User.StudentVerificationStatus.PENDING);
+        userRepository.save(user);
+        
+        return new StudentVerificationResponse(
+            userId, 
+            User.StudentVerificationStatus.PENDING, 
+            "대학생 인증 요청이 접수되었습니다."
+        );
+    }
+    
+    public void updateStudentVerificationStatus(Long userId, User.StudentVerificationStatus status) {
+        User user = userRepository.findByIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+        
+        user.setStudentVerificationStatus(status);
+        userRepository.save(user);
+    }
 }

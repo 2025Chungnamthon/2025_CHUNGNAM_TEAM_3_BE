@@ -13,6 +13,7 @@ public class UserResponse {
     private String nickname;
     private String university;
     private Boolean driverLicenseVerified;
+    private User.StudentVerificationStatus studentVerificationStatus;
     private LocalDateTime createdAt;
     
     public UserResponse() {}
@@ -25,6 +26,7 @@ public class UserResponse {
         this.nickname = user.getNickname();
         this.university = user.getUniversity();
         this.driverLicenseVerified = user.getDriverLicenseVerified();
+        this.studentVerificationStatus = user.getStudentVerificationStatus();
         this.createdAt = user.getCreatedAt();
     }
     
@@ -90,5 +92,13 @@ public class UserResponse {
     
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public User.StudentVerificationStatus getStudentVerificationStatus() {
+        return studentVerificationStatus;
+    }
+    
+    public void setStudentVerificationStatus(User.StudentVerificationStatus studentVerificationStatus) {
+        this.studentVerificationStatus = studentVerificationStatus;
     }
 }
