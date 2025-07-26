@@ -2,7 +2,7 @@ package Team3rd.DaeCar.DaeCar.domain.chat.controller;
 
 import Team3rd.DaeCar.DaeCar.domain.chat.dto.ChatMessageRequest;
 import Team3rd.DaeCar.DaeCar.domain.chat.dto.ChatMessageResponse;
-import Team3rd.DaeCar.DaeCar.domain.chat.entity.ChatMessage;
+import Team3rd.DaeCar.DaeCar.domain.chat.enums.MessageType;
 import Team3rd.DaeCar.DaeCar.domain.chat.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,21 +22,17 @@ public class ChatController {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/room/{roomId}")
-    public ChatMessageResponse sendMessage(ChatMessageRequest message) {
+    public void sendMessage(ChatMessageRequest message) {
         ChatMessageResponse savedMessage = chatService.saveMessage(message);
         messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId(), savedMessage);
-        return savedMessage;
     }
 
     @MessageMapping("/chat.addUser")
-    @SendTo("/topic/room/{roomId}")
-    public ChatMessageResponse addUser(ChatMessageRequest message) {
-        message.setMessageType(ChatMessage.MessageType.JOIN);
+    public void addUser(ChatMessageRequest message) {
+        message.setMessageType(MessageType.JOIN);
         message.setContent(message.getSenderName() + " joined the room");
         ChatMessageResponse savedMessage = chatService.saveMessage(message);
         messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId(), savedMessage);
-        return savedMessage;
     }
 
     @GetMapping("/room/{roomId}/messages")

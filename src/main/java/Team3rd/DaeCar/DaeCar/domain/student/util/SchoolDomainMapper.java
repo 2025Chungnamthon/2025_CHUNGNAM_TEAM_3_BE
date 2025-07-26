@@ -1,4 +1,4 @@
-package Team3rd.DaeCar.DaeCar.studentFillter.utill;
+package Team3rd.DaeCar.DaeCar.domain.student.util;
 
 import java.util.HashMap;
 import java.util.Map;

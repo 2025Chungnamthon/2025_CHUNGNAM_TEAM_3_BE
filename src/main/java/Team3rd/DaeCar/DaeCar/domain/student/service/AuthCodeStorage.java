@@ -1,4 +1,4 @@
-package Team3rd.DaeCar.DaeCar.studentFillter.service;
+package Team3rd.DaeCar.DaeCar.domain.student.service;
 
 import org.springframework.stereotype.Component;
 
