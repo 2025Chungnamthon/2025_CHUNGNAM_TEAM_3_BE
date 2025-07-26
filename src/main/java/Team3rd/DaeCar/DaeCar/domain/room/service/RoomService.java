@@ -187,6 +187,44 @@ public class RoomService {
         return null;
     }
     
+    public void deleteRoom(Long roomId) {
+        Room room = getRoomFromCacheOrDb(roomId);
+        if (room == null) {
+            throw new RuntimeException("방을 찾을 수 없습니다.");
+        }
+        
+        // 방을 비활성화 (soft delete)
+        room.setIsActive(false);
+        roomRepository.save(room);
+        
+        // 해당 방의 모든 참여자를 비활성화
+        List<RoomParticipant> participants = participantRepository.findByRoomIdAndIsActiveTrue(roomId);
+        for (RoomParticipant participant : participants) {
+            participant.setIsActive(false);
+            participantRepository.save(participant);
+        }
+        
+        try {
+            // Redis 캐시에서 방 정보 삭제
+            String cacheKey = ROOM_CACHE_PREFIX + roomId;
+            redisTemplate.delete(cacheKey);
+            
+            // Redis에서 참여자 정보 삭제
+            String participantsCacheKey = ROOM_PARTICIPANTS_PREFIX + roomId;
+            redisTemplate.delete(participantsCacheKey);
+        } catch (Exception e) {
+            System.err.println("Redis cache delete error: " + e.getMessage());
+        }
+        
+        try {
+            // RabbitMQ로 방 삭제 이벤트 발송
+            rabbitTemplate.convertAndSend(ROOM_EXCHANGE, "room.deleted", 
+                new RoomDeleteEvent(roomId));
+        } catch (Exception e) {
+            System.err.println("RabbitMQ send error: " + e.getMessage());
+        }
+    }
+    
     public static class RoomJoinEvent {
         private Long roomId;
         private String userId;
@@ -202,6 +240,18 @@ public class RoomService {
         
         public String getUserId() {
             return userId;
+        }
+    }
+    
+    public static class RoomDeleteEvent {
+        private Long roomId;
+        
+        public RoomDeleteEvent(Long roomId) {
+            this.roomId = roomId;
+        }
+        
+        public Long getRoomId() {
+            return roomId;
         }
     }
 }

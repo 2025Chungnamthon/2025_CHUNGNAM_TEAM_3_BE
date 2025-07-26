@@ -113,4 +113,23 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @DeleteMapping("/{roomId}")
+    @Operation(summary = "방 삭제", description = "특정 방을 삭제합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "삭제 성공"),
+        @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<Void> deleteRoom(
+            @Parameter(description = "방 ID", required = true) @PathVariable Long roomId) {
+        try {
+            roomService.deleteRoom(roomId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
