@@ -42,6 +42,11 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok:1.18.32'
 	annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+	//ocr
+	implementation 'org.springframework.boot:spring-boot-starter-json'
+	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+	implementation 'org.json:json:20240303'
 }
 
 tasks.named('test') {
