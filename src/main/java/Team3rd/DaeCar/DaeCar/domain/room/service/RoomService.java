@@ -20,6 +20,7 @@ import Team3rd.DaeCar.DaeCar.domain.map.service.NaverMapService;
 import Team3rd.DaeCar.DaeCar.domain.map.dto.RouteResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +69,11 @@ public class RoomService {
         room.setDepartureTime(request.getDepartureTime());
         room.setCostPerPerson(request.getCostPerPerson());
         room.setDescription(request.getDescription());
+
+        room.setStartLatitude(BigDecimal.valueOf(request.getStartLatitude()));
+        room.setStartLongitude(BigDecimal.valueOf(request.getStartLongitude()));
+        room.setEndLatitude(BigDecimal.valueOf(request.getEndLatitude()));
+        room.setEndLongitude(BigDecimal.valueOf(request.getEndLongitude()));
         
         Room savedRoom = roomRepository.save(room);
         
@@ -271,6 +277,15 @@ public class RoomService {
         }
     }
 
+    public Room getRoomEntity(Long roomId) {
+        return roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("방을 찾을 수 없습니다."));
+    }
+
+    public Room saveRoom(Room room) {
+        return roomRepository.save(room);
+    }
+
     public static class RoomJoinEvent {
         private Long roomId;
         private Long userId;
@@ -307,5 +322,59 @@ public class RoomService {
         
         public Long getRoomId() { return roomId; }
         public Long getUserId() { return userId; }
+    }
+
+
+    @Transactional
+    public boolean setRoomCostFromNaverMap(Long roomId, double startLat, double startLng,
+                                           double endLat, double endLng) {
+        try {
+            // 1. 네이버맵 API 호출
+            RouteResponse routeResponse = naverMapService.calculateRoute(startLat, startLng, endLat, endLng);
+
+            if (!routeResponse.isSuccess()) {
+                return false;
+            }
+
+            // 2. 방 정보 가져오기
+            Room room = roomRepository.findById(roomId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카풀방입니다."));
+
+            // 3. 🔥 택시요금 그대로 totalCost에 설정
+            BigDecimal taxiCost = BigDecimal.valueOf(routeResponse.getTaxiFare());
+            room.setTotalCost(taxiCost);
+
+            // 4. 기타 정보도 저장 (선택사항)
+            room.setEstimatedDistance(routeResponse.getDistance());
+            room.setEstimatedDuration(routeResponse.getDuration());
+            room.setEstimatedTaxiFare(routeResponse.getTaxiFare());
+
+            roomRepository.save(room);
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public BigDecimal getCurrentPerPersonCost(Long roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카풀방입니다."));
+
+        if (room.getTotalCost() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // 승객 수로 나누기 (운전자 제외)
+        int passengerCount = room.getCurrentParticipants() - 1; // 운전자 1명 제외
+
+        if (passengerCount <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return room.getTotalCost()
+                .divide(BigDecimal.valueOf(passengerCount), java.math.RoundingMode.HALF_UP);
     }
 }

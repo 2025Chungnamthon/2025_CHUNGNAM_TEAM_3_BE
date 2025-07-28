@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 운전면허 인증된 사용자들 조회
     List<User> findByDriverLicenseVerifiedTrueAndIsActiveTrue();
+
+
 }
