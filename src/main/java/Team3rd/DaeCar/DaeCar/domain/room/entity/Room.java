@@ -1,6 +1,8 @@
 package Team3rd.DaeCar.DaeCar.domain.room.entity;
 
+import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +30,31 @@ public class Room {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    // 카풀/택시 구분을 위한 타입
+    @Enumerated(EnumType.STRING)
+    @Column(name = "room_type", nullable = false)
+    private RoomType roomType;
+
+    // 출발지
+    @Column(name = "departure_location")
+    private String departureLocation;
+
+    // 목적지
+    @Column(name = "destination")
+    private String destination;
+
+    // 출발 시간
+    @Column(name = "departure_time")
+    private LocalDateTime departureTime;
+
+    // 인당 비용 (택시의 경우 예상 비용, 카풀의 경우 기름값 분담)
+    @Column(name = "cost_per_person", precision = 10, scale = 2)
+    private BigDecimal costPerPerson;
+
+    // 추가 정보 (선택사항)
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @PrePersist
     protected void onCreate() {
@@ -94,5 +121,53 @@ public class Room {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public RoomType getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(RoomType roomType) {
+        this.roomType = roomType;
+    }
+
+    public String getDepartureLocation() {
+        return departureLocation;
+    }
+
+    public void setDepartureLocation(String departureLocation) {
+        this.departureLocation = departureLocation;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public LocalDateTime getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(LocalDateTime departureTime) {
+        this.departureTime = departureTime;
+    }
+
+    public BigDecimal getCostPerPerson() {
+        return costPerPerson;
+    }
+
+    public void setCostPerPerson(BigDecimal costPerPerson) {
+        this.costPerPerson = costPerPerson;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

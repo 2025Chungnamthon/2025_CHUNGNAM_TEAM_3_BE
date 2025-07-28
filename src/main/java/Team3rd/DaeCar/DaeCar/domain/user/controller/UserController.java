@@ -97,4 +97,69 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    @PostMapping("/{userId}/student-verification/email")
+    @Operation(summary = "학생 이메일 인증 요청", description = "대학교 이메일로 인증코드를 발송합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증코드 발송 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 이메일 도메인"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<Void> sendStudentEmailVerification(
+            @Parameter(description = "사용자 ID", required = true) @PathVariable Long userId,
+            @Valid @RequestBody StudentEmailVerificationRequest request) {
+        try {
+            userService.sendStudentEmailVerification(userId, request.getStudentEmail());
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @PostMapping("/{userId}/student-verification/verify")
+    @Operation(summary = "학생 이메일 인증 확인", description = "인증코드를 확인하여 학생 인증을 완료합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 인증코드 또는 요청"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<Void> verifyStudentEmail(
+            @Parameter(description = "사용자 ID", required = true) @PathVariable Long userId,
+            @Valid @RequestBody VerificationCodeRequest request) {
+        try {
+            boolean verified = userService.verifyStudentEmail(userId, request.getVerificationCode());
+            if (verified) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/{userId}/student-verification/status")
+    @Operation(summary = "학생 인증 상태 확인", description = "사용자의 학생 인증 상태를 확인합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<Boolean> getStudentVerificationStatus(
+            @Parameter(description = "사용자 ID", required = true) @PathVariable Long userId) {
+        try {
+            boolean verified = userService.isStudentVerified(userId);
+            return ResponseEntity.ok(verified);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

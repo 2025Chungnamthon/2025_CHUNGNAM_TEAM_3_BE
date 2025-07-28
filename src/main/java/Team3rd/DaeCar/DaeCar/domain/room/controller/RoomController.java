@@ -4,6 +4,7 @@ import Team3rd.DaeCar.DaeCar.domain.room.dto.CreateRoomRequest;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.JoinRoomRequest;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomResponse;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomParticipantResponse;
+import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import Team3rd.DaeCar.DaeCar.domain.room.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,6 +76,37 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/carpool")
+    @Operation(summary = "카풀방 목록", description = "참가 가능한 카풀방 목록을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<List<RoomResponse>> getCarpoolRooms() {
+        try {
+            List<RoomResponse> rooms = roomService.getCarpoolRooms();
+            return ResponseEntity.ok(rooms);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/taxi")
+    @Operation(summary = "택시방 목록", description = "참가 가능한 택시방 목록을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<List<RoomResponse>> getTaxiRooms() {
+        try {
+            List<RoomResponse> rooms = roomService.getTaxiRooms();
+            return ResponseEntity.ok(rooms);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     
     @GetMapping("/{roomId}")
     @Operation(summary = "방 상세 조회", description = "특정 방의 상세 정보를 조회합니다.")
