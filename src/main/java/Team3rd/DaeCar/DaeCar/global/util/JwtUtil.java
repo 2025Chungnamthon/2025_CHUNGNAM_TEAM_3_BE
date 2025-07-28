@@ -89,4 +89,8 @@ public class JwtUtil {
             return false;
         }
     }
+    
+    public long getExpirationTime(String token) {
+        return extractExpiration(token).getTime();
+    }
 }

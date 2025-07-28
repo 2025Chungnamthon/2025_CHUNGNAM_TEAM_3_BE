@@ -226,6 +226,15 @@ public class CarpoolPaymentService {
     }
 
     /**
+
+     * 결제 설명 생성
+     */
+    private String generatePaymentDescription(Room room) {
+        return String.format("%s → %s 카풀비",
+                room.getDepartureLocation(), room.getDestination());
+    }
+
+    /**
      * 📊 사용자별 포인트 조회
      */
     public BigDecimal getUserPoints(Long userId) {

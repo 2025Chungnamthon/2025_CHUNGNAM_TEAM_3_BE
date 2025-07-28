@@ -1,11 +1,13 @@
 package Team3rd.DaeCar.DaeCar.domain.student.controller;
 
-import Team3rd.DaeCar.DaeCar.domain.student.dto.CodeVerificationRequest;
-import Team3rd.DaeCar.DaeCar.domain.student.dto.EmailRequest;
-import Team3rd.DaeCar.DaeCar.domain.student.dto.SignUpRequest;
+import Team3rd.DaeCar.DaeCar.domain.student.dto.*;
 import Team3rd.DaeCar.DaeCar.domain.student.service.AuthCodeStorage;
 import Team3rd.DaeCar.DaeCar.domain.student.service.AuthService;
 import Team3rd.DaeCar.DaeCar.domain.student.util.SchoolDomainMapper;
+import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
+import Team3rd.DaeCar.DaeCar.domain.user.repository.UserRepository;
+import Team3rd.DaeCar.DaeCar.domain.user.service.UserService;
+import Team3rd.DaeCar.DaeCar.global.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/send")
     public ResponseEntity<?> sendAuthCode(@RequestBody @Valid EmailRequest request) {
@@ -56,15 +61,96 @@ public class AuthController {
 
         boolean verified = authService.verifyCode(email, code);
         if (verified) {
-            return ResponseEntity.ok("인증 성공");
+            // 사용자 존재 여부 확인
+            boolean userExists = userRepository.existsByEmailAndIsActiveTrue(email);
+            
+            // 기존 사용자인 경우 학생 인증 상태 업데이트
+            if (userExists) {
+                User user = userRepository.findByEmailAndIsActiveTrue(email).orElse(null);
+                if (user != null) {
+                    user.setStudentEmail(email);
+                    user.setStudentEmailVerified(true);
+                    user.setStudentVerificationStatus(User.StudentVerificationStatus.VERIFIED);
+                    userRepository.save(user);
+                }
+            }
+            
+            return ResponseEntity.ok(new UserStatusResponse(userExists, 
+                userExists ? "기존 사용자입니다. 학생 인증이 완료되었습니다. 비밀번호를 입력해주세요." : "신규 사용자입니다. 회원가입을 진행해주세요.", 
+                email));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 코드가 유효하지 않습니다.");
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
+        try {
+            // 사용자 존재 확인
+            User user = userRepository.findByEmailAndIsActiveTrue(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+            
+            // 비밀번호 확인은 UserService의 로그인 로직 사용
+            Team3rd.DaeCar.DaeCar.domain.user.dto.LoginRequest userLoginRequest = 
+                new Team3rd.DaeCar.DaeCar.domain.user.dto.LoginRequest();
+            userLoginRequest.setEmail(request.getEmail());
+            userLoginRequest.setPassword(request.getPassword());
+            
+            Team3rd.DaeCar.DaeCar.domain.user.dto.LoginResponse loginResponse = 
+                userService.login(userLoginRequest);
+            
+            return ResponseEntity.ok(loginResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
+    }
+    
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest request) {
-
-        return ResponseEntity.ok("정보 입력이 완료되었습니다.");
+        try {
+            // 학교 도메인에서 대학교 이름 추출
+            String university = SchoolDomainMapper.getSchoolByEmail(request.getEmail());
+            if (university == null) {
+                return ResponseEntity.badRequest().body("지원하지 않는 학교 이메일입니다.");
+            }
+            
+            // User 회원가입 요청 변환
+            Team3rd.DaeCar.DaeCar.domain.user.dto.RegisterRequest registerRequest = 
+                new Team3rd.DaeCar.DaeCar.domain.user.dto.RegisterRequest();
+            registerRequest.setEmail(request.getEmail());
+            registerRequest.setPassword(request.getPassword());
+            registerRequest.setNickname(request.getNickname());
+            registerRequest.setPhoneNumber(request.getPhoneNumber());
+            registerRequest.setGender(User.Gender.valueOf(request.getGender().toUpperCase()));
+            registerRequest.setUniversity(university);
+            
+            // 회원가입 처리
+            Team3rd.DaeCar.DaeCar.domain.user.dto.UserResponse userResponse = 
+                userService.register(registerRequest);
+                
+            // 회원가입 후 학생 인증 상태 자동 설정 (학교 이메일로 가입했으므로)
+            User newUser = userRepository.findByEmailAndIsActiveTrue(request.getEmail()).orElse(null);
+            if (newUser != null) {
+                newUser.setStudentEmail(request.getEmail());
+                newUser.setStudentEmailVerified(true);
+                newUser.setStudentVerificationStatus(User.StudentVerificationStatus.VERIFIED);
+                userRepository.save(newUser);
+            }
+                
+            // JWT 토큰 생성
+            String token = jwtUtil.generateToken(request.getEmail());
+            
+            // 로그인 응답 생성
+            Team3rd.DaeCar.DaeCar.domain.user.dto.LoginResponse loginResponse = 
+                new Team3rd.DaeCar.DaeCar.domain.user.dto.LoginResponse();
+            loginResponse.setToken(token);
+            loginResponse.setUser(userResponse);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(loginResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원가입 중 오류가 발생했습니다.");
+        }
     }
 }
