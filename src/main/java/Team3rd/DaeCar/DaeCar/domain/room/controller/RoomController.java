@@ -1,9 +1,11 @@
 package Team3rd.DaeCar.DaeCar.domain.room.controller;
 
+import Team3rd.DaeCar.DaeCar.domain.pay.service.CarpoolPaymentService;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.CreateRoomRequest;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.JoinRoomRequest;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomResponse;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomParticipantResponse;
+import Team3rd.DaeCar.DaeCar.domain.room.entity.Room;
 import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import Team3rd.DaeCar.DaeCar.domain.room.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -185,4 +188,34 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/{roomId}/preview")
+    @Operation(summary = "결제 미리보기", description = "특정 방의 예상 결제 금액, 거리, 시간 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "미리보기 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<CarpoolPaymentService.PaymentPreview> previewPayment(
+            @Parameter(description = "방 ID", required = true) @PathVariable Long roomId) {
+        try {
+            Room room = roomService.getRoomEntity(roomId); // Room 자체 리턴하는 메서드 하나 만들면 좋아
+
+            BigDecimal totalCost = room.getTotalCost() != null ? room.getTotalCost() : BigDecimal.ZERO;
+            BigDecimal perPersonCost = room.getCostPerPerson() != null ? room.getCostPerPerson() : BigDecimal.ZERO;
+            int passengerCount = room.getCurrentParticipants() != null ? room.getCurrentParticipants() : 0;
+            String distance = room.getEstimatedDistance() != null ? room.getEstimatedDistance() + "m" : "정보 없음";
+            String duration = room.getEstimatedDuration() != null ? (room.getEstimatedDuration() / 60000) + "분" : "정보 없음";
+            String desc = String.format("🚗 %s → %s 예상 요금 (%,d원)", room.getDepartureLocation(), room.getDestination(), perPersonCost.intValue());
+
+            CarpoolPaymentService.PaymentPreview preview = new CarpoolPaymentService.PaymentPreview(totalCost, perPersonCost, passengerCount, distance, duration, desc);
+            return ResponseEntity.ok(preview);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 }

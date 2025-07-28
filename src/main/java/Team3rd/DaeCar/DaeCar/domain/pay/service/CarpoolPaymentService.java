@@ -6,6 +6,7 @@ import Team3rd.DaeCar.DaeCar.domain.room.entity.Room;
 import Team3rd.DaeCar.DaeCar.domain.room.entity.RoomParticipant;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomParticipantRepository;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomRepository;
+import Team3rd.DaeCar.DaeCar.domain.room.service.RoomService;
 import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
 import Team3rd.DaeCar.DaeCar.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CarpoolPaymentService {
@@ -31,6 +31,9 @@ public class CarpoolPaymentService {
 
     @Autowired
     private PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired
+    private RoomService roomService;
 
     /**
      * 🚗 카풀 완료 시 자동 결제 처리 (운전자가 도착 버튼 클릭)
@@ -53,58 +56,104 @@ public class CarpoolPaymentService {
                 return PaymentResult.failure("운전자만 도착 처리할 수 있습니다.");
             }
 
-            // 2. 참여자들 조회
-            List<RoomParticipant> participants = roomParticipantRepository
-                    .findByRoomIdAndIsActiveTrue(roomId);
+            // 2. 🔥 수정된 부분: 미결제 승객들만 조회
+            List<RoomParticipant> unpaidPassengers = roomParticipantRepository
+                    .findUnpaidPassengersByRoomId(roomId);
 
-            // 3. 결제해야 할 승객들 찾기 (운전자 제외)
-            List<RoomParticipant> passengers = participants.stream()
-                    .filter(p -> !p.isDriver() && !p.getIsPaid())
-                    .collect(Collectors.toList());
-
-            if (passengers.isEmpty()) {
+            if (unpaidPassengers.isEmpty()) {
                 room.setStatus(Room.RoomStatus.COMPLETED);
                 roomRepository.save(room);
                 return PaymentResult.success("이미 모든 결제가 완료되었습니다.");
             }
 
-            // 4. 1인당 결제 금액 계산
-            BigDecimal perPersonCost = room.getTotalCost()
-                    .divide(BigDecimal.valueOf(passengers.size()), RoundingMode.HALF_UP);
+            // 3. 🔥 네이버맵 기반 1인당 결제 금액 계산
+            BigDecimal perPersonCost = roomService.getCurrentPerPersonCost(roomId);
 
-            // 5. 각 승객이 운전자에게 결제
+            if (perPersonCost.compareTo(BigDecimal.ZERO) <= 0) {
+                return PaymentResult.failure("결제 금액을 계산할 수 없습니다.");
+            }
+
+            // 4. 각 승객이 운전자에게 결제
             int successCount = 0;
-            for (RoomParticipant passenger : passengers) {
+            StringBuilder resultMessage = new StringBuilder();
+
+            for (RoomParticipant passenger : unpaidPassengers) {
                 Long passengerUserId = passenger.getUserId();
                 boolean paymentSuccess = transferPoints(
                         passengerUserId,
                         driverUserId,
                         perPersonCost,
                         roomId,
-                        generatePaymentDescription(room)
+                        generatePaymentDescription(room.getDepartureLocation(),
+                                room.getDestination(), perPersonCost)
                 );
 
                 if (paymentSuccess) {
                     passenger.setIsPaid(true);
                     roomParticipantRepository.save(passenger);
                     successCount++;
+                } else {
+                    // 실패한 사용자 정보 추가
+                    User failedUser = userRepository.findById(passengerUserId).orElse(null);
+                    if (failedUser != null) {
+                        resultMessage.append(String.format("⚠️ %s님 결제 실패 (포인트 부족), ",
+                                failedUser.getNickname()));
+                    }
                 }
             }
 
-            // 6. 방 상태를 완료로 변경
+            // 5. 방 상태를 완료로 변경
             room.setStatus(Room.RoomStatus.COMPLETED);
             roomRepository.save(room);
 
-            return PaymentResult.success(
-                    String.format("결제 완료! %d명 중 %d명 결제 성공",
-                            passengers.size(), successCount)
-            );
+            // 6. 결과 메시지 생성
+            String finalMessage = String.format("🎉 카풀 완료! %d명 중 %d명 결제 성공 (1인당 %,d원)",
+                    unpaidPassengers.size(), successCount, perPersonCost.intValue());
+
+            if (resultMessage.length() > 0) {
+                finalMessage += "\n" + resultMessage.toString();
+            }
+
+            return PaymentResult.success(finalMessage);
 
         } catch (Exception e) {
             return PaymentResult.failure("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
+    /**
+     * 💰 1인당 비용 계산 (간단 버전)
+     */
+    private BigDecimal calculatePerPersonCost(Room room, int passengerCount) {
+        if (room.getTotalCost() == null || passengerCount <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return room.getTotalCost()
+                .divide(BigDecimal.valueOf(passengerCount), RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 📊 결제 전 비용 미리보기
+
+    public PaymentPreview getPaymentPreview(Long roomId) {
+        try {
+            RoomService.costInfo = roomService.getRoomCostInfo(roomId);
+
+            return new PaymentPreview(
+                    costInfo.getTotalCost(),
+                    costInfo.getPerPersonCost(),
+                    costInfo.getCurrentPassengers(),
+                    costInfo.getDistance(),
+                    costInfo.getDuration(),
+                    generatePaymentDescription(costInfo.getDepartureLocation(),
+                            costInfo.getDestination(), costInfo.getPerPersonCost())
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
+     */
     /**
      * 💸 포인트 이체 처리
      */
@@ -120,7 +169,8 @@ public class CarpoolPaymentService {
             // 포인트 부족 체크
             if (fromUser.getPoints().compareTo(amount) < 0) {
                 createFailedTransaction(roomId, fromUserId, toUserId, amount,
-                        description, "포인트가 부족합니다.");
+                        description, String.format("포인트 부족 (보유: %,d원, 필요: %,d원)",
+                                fromUser.getPoints().intValue(), amount.intValue()));
                 return false;
             }
 
@@ -141,6 +191,14 @@ public class CarpoolPaymentService {
                     description, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * 📝 결제 설명 생성
+     */
+    private String generatePaymentDescription(String departure, String destination, BigDecimal amount) {
+        return String.format("🚗 %s → %s 카풀비 (%,d원)",
+                departure, destination, amount.intValue());
     }
 
     /**
@@ -165,14 +223,6 @@ public class CarpoolPaymentService {
         );
         transaction.markAsFailed(errorMessage);
         paymentTransactionRepository.save(transaction);
-    }
-
-    /**
-     * 결제 설명 생성
-     */
-    private String generatePaymentDescription(Room room) {
-        return String.format("%s → %s 카풀비",
-                room.getStartLocation(), room.getEndLocation());
     }
 
     /**
@@ -228,5 +278,35 @@ public class CarpoolPaymentService {
         public String getMessage() {
             return message;
         }
+    }
+
+    /**
+     * 결제 미리보기 클래스
+     */
+    public static class PaymentPreview {
+        private BigDecimal totalCost;
+        private BigDecimal perPersonCost;
+        private int passengerCount;
+        private String distance;
+        private String duration;
+        private String description;
+
+        public PaymentPreview(BigDecimal totalCost, BigDecimal perPersonCost, int passengerCount,
+                              String distance, String duration, String description) {
+            this.totalCost = totalCost;
+            this.perPersonCost = perPersonCost;
+            this.passengerCount = passengerCount;
+            this.distance = distance;
+            this.duration = duration;
+            this.description = description;
+        }
+
+        // getters
+        public BigDecimal getTotalCost() { return totalCost; }
+        public BigDecimal getPerPersonCost() { return perPersonCost; }
+        public int getPassengerCount() { return passengerCount; }
+        public String getDistance() { return distance; }
+        public String getDuration() { return duration; }
+        public String getDescription() { return description; }
     }
 }

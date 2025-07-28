@@ -88,6 +88,8 @@ public class Room {
     @Column(name = "route_path", columnDefinition = "TEXT")
     private String routePath; // 경로 좌표 데이터 (JSON 형태)
 
+
+
     public enum RoomStatus {
         WAITING,    // 대기중
         MATCHED,    // 매칭 완료

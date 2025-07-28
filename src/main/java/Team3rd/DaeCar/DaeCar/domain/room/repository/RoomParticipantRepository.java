@@ -22,4 +22,5 @@ public interface RoomParticipantRepository extends JpaRepository<RoomParticipant
 
     int countByRoomIdAndIsActiveTrue(Long roomId);
 
+    List<RoomParticipant> findUnpaidPassengersByRoomId(Long roomId);
 }

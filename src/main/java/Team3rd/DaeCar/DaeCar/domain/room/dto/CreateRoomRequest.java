@@ -93,9 +93,7 @@ public class CreateRoomRequest {
         this.destination = destination;
     }
 
-    private BigDecimal costPerPerson; // 1인당 비용
 
-    private String description; // 방 설명
 
     // === 좌표 정보 (새로 추가!) ===
     @NotNull(message = "출발지 위도는 필수입니다")
