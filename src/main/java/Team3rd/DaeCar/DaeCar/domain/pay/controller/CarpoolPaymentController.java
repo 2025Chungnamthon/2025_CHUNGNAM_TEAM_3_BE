@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class CarpoolPaymentController {
 
     @Autowired
