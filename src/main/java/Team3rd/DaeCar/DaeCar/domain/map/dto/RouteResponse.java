@@ -30,9 +30,6 @@ public class RouteResponse {
         return duration != null ? duration / 60000 : null;
     }
 
-    public Integer gettexiCost() {
-        return taxiFare;
-    }
 
     public static RouteResponse error(String errorMessage) {
         RouteResponse response = new RouteResponse();

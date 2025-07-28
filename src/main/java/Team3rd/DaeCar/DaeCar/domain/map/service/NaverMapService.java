@@ -49,6 +49,9 @@ public class NaverMapService {
             );
 
             if (response.getStatusCode() == HttpStatus.OK) {
+
+                System.out.println("네이버 API 응답 상태: " + response.getStatusCode());
+                System.out.println("네이버 API 응답 본문: " + response.getBody());
                 JsonNode root = objectMapper.readTree(response.getBody());
                 JsonNode route = root.path("route");
 

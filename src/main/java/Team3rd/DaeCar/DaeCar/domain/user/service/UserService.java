@@ -168,7 +168,8 @@ public class UserService {
     public void logout(String token) {
         try {
             // JWT 토큰에서 만료 시간 추출
-            long expirationTime = jwtUtil.getExpirationTime(token);
+            //long expirationTime = jwtUtil.getExpirationTime(token);
+            long expirationTime = jwtUtil.extractExpiration(token).getTime();
             long currentTime = System.currentTimeMillis();
             
             if (expirationTime > currentTime) {

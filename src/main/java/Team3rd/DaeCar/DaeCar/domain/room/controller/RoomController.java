@@ -198,7 +198,7 @@ public class RoomController {
     public ResponseEntity<CarpoolPaymentService.PaymentPreview> previewPayment(
             @Parameter(description = "방 ID", required = true) @PathVariable Long roomId) {
         try {
-            Room room = roomService.getRoomEntity(roomId); // Room 자체 리턴하는 메서드 하나 만들면 좋아
+            Room room = roomService.getRoomEntity(roomId);
 
             BigDecimal totalCost = room.getTotalCost() != null ? room.getTotalCost() : BigDecimal.ZERO;
             BigDecimal perPersonCost = room.getCostPerPerson() != null ? room.getCostPerPerson() : BigDecimal.ZERO;

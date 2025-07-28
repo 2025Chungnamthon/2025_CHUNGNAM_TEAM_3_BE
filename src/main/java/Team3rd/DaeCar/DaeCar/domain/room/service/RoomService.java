@@ -69,6 +69,11 @@ public class RoomService {
         room.setDepartureTime(request.getDepartureTime());
         room.setCostPerPerson(request.getCostPerPerson());
         room.setDescription(request.getDescription());
+
+        room.setStartLatitude(BigDecimal.valueOf(request.getStartLatitude()));
+        room.setStartLongitude(BigDecimal.valueOf(request.getStartLongitude()));
+        room.setEndLatitude(BigDecimal.valueOf(request.getEndLatitude()));
+        room.setEndLongitude(BigDecimal.valueOf(request.getEndLongitude()));
         
         Room savedRoom = roomRepository.save(room);
         
@@ -277,6 +282,10 @@ public class RoomService {
                 .orElseThrow(() -> new IllegalArgumentException("방을 찾을 수 없습니다."));
     }
 
+    public Room saveRoom(Room room) {
+        return roomRepository.save(room);
+    }
+
     public static class RoomJoinEvent {
         private Long roomId;
         private Long userId;
@@ -332,13 +341,13 @@ public class RoomService {
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카풀방입니다."));
 
             // 3. 🔥 택시요금 그대로 totalCost에 설정
-            BigDecimal taxiCost = BigDecimal.valueOf(routeResponse.gettexiCost());
+            BigDecimal taxiCost = BigDecimal.valueOf(routeResponse.getTaxiFare());
             room.setTotalCost(taxiCost);
 
             // 4. 기타 정보도 저장 (선택사항)
             room.setEstimatedDistance(routeResponse.getDistance());
             room.setEstimatedDuration(routeResponse.getDuration());
-            room.setEstimatedTaxiFare(routeResponse.gettexiCost());
+            room.setEstimatedTaxiFare(routeResponse.getTaxiFare());
 
             roomRepository.save(room);
 
