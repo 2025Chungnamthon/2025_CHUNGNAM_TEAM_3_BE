@@ -1,4 +1,4 @@
-package Team3rd.DaeCar.DaeCar.driver.dto;
+package Team3rd.DaeCar.DaeCar.domain.driver.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

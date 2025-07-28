@@ -1,17 +1,17 @@
-package Team3rd.DaeCar.DaeCar.driver.Controller;
+package Team3rd.DaeCar.DaeCar.domain.driver.Controller;
 
-import Team3rd.DaeCar.DaeCar.driver.dto.DriverInfoResponse;
-import Team3rd.DaeCar.DaeCar.driver.service.OcrService;
+import Team3rd.DaeCar.DaeCar.domain.driver.dto.DriverInfoResponse;
+import Team3rd.DaeCar.DaeCar.domain.driver.service.OcrService;
+import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/driver")
@@ -23,9 +23,11 @@ public class OcrController {
 
     @PostMapping("/license")
     public ResponseEntity<DriverInfoResponse> extractLicense(
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId//나중에 jwt토큰으로
     ) {
-        DriverInfoResponse dto = ocrService.extractDriverLicenseInfo(file);
+
+        DriverInfoResponse dto = ocrService.extractDriverLicenseInfo(file, userId);
         return ResponseEntity.ok(dto);
     }
 }

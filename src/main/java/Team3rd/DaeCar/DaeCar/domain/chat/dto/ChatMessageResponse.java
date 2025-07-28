@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public class ChatMessageResponse {
     private Long id;
     private Long roomId;
-    private String senderId;
+    private Long senderId;
     private String senderName;
     private String content;
     private MessageType messageType;
@@ -41,11 +41,11 @@ public class ChatMessageResponse {
         this.roomId = roomId;
     }
 
-    public String getSenderId() {
+    public Long getSenderId() {
         return senderId;
     }
 
-    public void setSenderId(String senderId) {
+    public void setSenderId(Long senderId) {
         this.senderId = senderId;
     }
 

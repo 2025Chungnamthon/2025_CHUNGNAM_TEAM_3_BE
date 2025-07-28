@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 public class RoomParticipantResponse {
     private Long id;
-    private String userId;
+    private Long userId;
     private LocalDateTime joinedAt;
     private Boolean isActive;
 
@@ -26,11 +26,11 @@ public class RoomParticipantResponse {
         this.id = id;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

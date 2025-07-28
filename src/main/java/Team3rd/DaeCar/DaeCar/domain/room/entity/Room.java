@@ -1,6 +1,8 @@
 package Team3rd.DaeCar.DaeCar.domain.room.entity;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +30,85 @@ public class Room {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+
+
+    // 카풀 관련 필드 추가
+    @Column(name = "start_location")
+    private String startLocation;
+
+    @Column(name = "end_location")
+    private String endLocation;
+
+    @Column(name = "departure_time")
+    private LocalDateTime departureTime;
+
+    @Column(name = "total_cost", precision = 10, scale = 0)
+    private BigDecimal totalCost;
+
+    @Column(name = "driver_user_id")
+    private Long driverUserId; // 운전자 ID
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RoomStatus status = RoomStatus.WAITING;
+
+    public enum RoomStatus {
+        WAITING,    // 운전자/참여자 대기중
+        MATCHED,    // 운전자 매칭 완료
+        DRIVING,    // 운행중
+        COMPLETED,  // 완료
+        CANCELLED   // 취소
+    }
+
+    // 새로 추가된 필드들의 getter/setter
+    public String getStartLocation() {
+        return startLocation;
+    }
+
+    public void setStartLocation(String startLocation) {
+        this.startLocation = startLocation;
+    }
+
+    public String getEndLocation() {
+        return endLocation;
+    }
+
+    public void setEndLocation(String endLocation) {
+        this.endLocation = endLocation;
+    }
+
+    public LocalDateTime getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(LocalDateTime departureTime) {
+        this.departureTime = departureTime;
+    }
+
+    public BigDecimal getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public Long getDriverUserId() {
+        return driverUserId;
+    }
+
+    public void setDriverUserId(Long driverUserId) {
+        this.driverUserId = driverUserId;
+    }
+
+    public RoomStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RoomStatus status) {
+        this.status = status;
+    }
 
     @PrePersist
     protected void onCreate() {
