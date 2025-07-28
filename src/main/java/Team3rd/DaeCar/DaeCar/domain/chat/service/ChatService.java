@@ -22,12 +22,13 @@ public class ChatService {
 
     public ChatMessageResponse saveMessage(ChatMessageRequest request) {
         boolean isParticipant = roomParticipantRepository
-                .findByRoomIdAndUserIdAndIsActiveTrue(request.getRoomId(), request.getSenderId())
+                .findByRoomIdAndUserIdAndIsActiveTrue(request.getRoomId(),request.getSenderId())
                 .isPresent();
 
         if (!isParticipant) {
             throw new RuntimeException("User is not a participant of this room");
         }
+
 
         ChatMessage message = new ChatMessage();
         message.setRoomId(request.getRoomId());
