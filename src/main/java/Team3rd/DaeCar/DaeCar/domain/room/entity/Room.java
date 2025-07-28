@@ -1,6 +1,7 @@
 package Team3rd.DaeCar.DaeCar.domain.room.entity;
 
 import jakarta.persistence.*;
+import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -28,6 +29,22 @@ public class Room {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "room_type")
+    private RoomType roomType;
+
+    @Column(name = "departure_location")
+    private String departureLocation;
+
+    @Column(name = "destination")
+    private String destination;
+
+    @Column(name = "cost_per_person", precision = 10, scale = 0)
+    private BigDecimal costPerPerson;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     // 카풀 관련 필드 (develop 브랜치 기준)
     @Column(name = "start_location")
@@ -172,5 +189,46 @@ public class Room {
 
     public void setStatus(RoomStatus status) {
         this.status = status;
+    }
+
+    // 추가된 필드들의 getter/setter
+    public RoomType getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(RoomType roomType) {
+        this.roomType = roomType;
+    }
+
+    public String getDepartureLocation() {
+        return departureLocation;
+    }
+
+    public void setDepartureLocation(String departureLocation) {
+        this.departureLocation = departureLocation;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public BigDecimal getCostPerPerson() {
+        return costPerPerson;
+    }
+
+    public void setCostPerPerson(BigDecimal costPerPerson) {
+        this.costPerPerson = costPerPerson;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
