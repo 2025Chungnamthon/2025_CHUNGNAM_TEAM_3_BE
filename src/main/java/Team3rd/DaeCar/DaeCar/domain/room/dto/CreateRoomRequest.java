@@ -17,6 +17,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CreateRoomRequest {
 
+    @NotNull(message = "사용자 ID는 필수입니다")
+    private Long userId;
+
+
     @NotBlank(message = "방 이름은 필수입니다")
     private String name; // 방 이름
 
@@ -34,7 +38,60 @@ public class CreateRoomRequest {
     private String destination; // 도착지 주소
 
     @NotNull(message = "출발 시간은 필수입니다")
+
     private LocalDateTime departureTime; // 출발 시간
+
+    private BigDecimal costPerPerson;
+
+    private String description;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getMaxParticipants() {
+        return maxParticipants;
+    }
+
+    public void setMaxParticipants(Integer maxParticipants) {
+        this.maxParticipants = maxParticipants;
+    }
+
+    public RoomType getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(RoomType roomType) {
+        this.roomType = roomType;
+    }
+
+    public String getDepartureLocation() {
+        return departureLocation;
+    }
+
+    public void setDepartureLocation(String departureLocation) {
+        this.departureLocation = departureLocation;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
 
     private BigDecimal costPerPerson; // 1인당 비용
 

@@ -6,9 +6,12 @@ import Team3rd.DaeCar.DaeCar.domain.user.repository.UserRepository;
 import Team3rd.DaeCar.DaeCar.domain.student.service.AuthService;
 import Team3rd.DaeCar.DaeCar.domain.student.util.SchoolDomainMapper;
 import Team3rd.DaeCar.DaeCar.global.util.JwtUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -19,17 +22,22 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final AuthService authService;
     private final SchoolDomainMapper schoolDomainMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
+    
+    private static final String TOKEN_BLACKLIST_PREFIX = "blacklist:token:";
     
     public UserService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
                       JwtUtil jwtUtil,
                       AuthService authService,
-                      SchoolDomainMapper schoolDomainMapper) {
+                      SchoolDomainMapper schoolDomainMapper,
+                      RedisTemplate<String, Object> redisTemplate) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authService = authService;
         this.schoolDomainMapper = schoolDomainMapper;
+        this.redisTemplate = redisTemplate;
     }
     
     public UserResponse register(RegisterRequest request) {
@@ -155,5 +163,35 @@ public class UserService {
         
         return user.getStudentVerificationStatus() == User.StudentVerificationStatus.VERIFIED 
                && user.getStudentEmailVerified();
+    }
+    
+    public void logout(String token) {
+        try {
+            // JWT 토큰에서 만료 시간 추출
+            long expirationTime = jwtUtil.getExpirationTime(token);
+            long currentTime = System.currentTimeMillis();
+            
+            if (expirationTime > currentTime) {
+                // 토큰이 아직 유효한 경우, 블랙리스트에 추가
+                long ttl = expirationTime - currentTime;
+                String blacklistKey = TOKEN_BLACKLIST_PREFIX + token;
+                
+                redisTemplate.opsForValue().set(blacklistKey, "LOGOUT", ttl, TimeUnit.MILLISECONDS);
+            }
+        } catch (Exception e) {
+            // Redis 오류가 있어도 로그아웃은 성공으로 처리
+            System.err.println("Redis blacklist error: " + e.getMessage());
+        }
+    }
+    
+    public boolean isTokenBlacklisted(String token) {
+        try {
+            String blacklistKey = TOKEN_BLACKLIST_PREFIX + token;
+            return redisTemplate.hasKey(blacklistKey);
+        } catch (Exception e) {
+            // Redis 오류 시 안전상 false 반환 (토큰 유효성은 JWT 자체 검증에 의존)
+            System.err.println("Redis blacklist check error: " + e.getMessage());
+            return false;
+        }
     }
 }
