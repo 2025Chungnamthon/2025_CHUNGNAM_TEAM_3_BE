@@ -172,7 +172,7 @@ public class CarpoolPaymentService {
      */
     private String generatePaymentDescription(Room room) {
         return String.format("%s → %s 카풀비",
-                room.getStartLocation(), room.getEndLocation());
+                room.getDepartureLocation(), room.getDestination());
     }
 
     /**
