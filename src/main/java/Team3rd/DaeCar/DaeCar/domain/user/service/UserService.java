@@ -58,6 +58,7 @@ public class UserService {
         user.setUniversity(request.getUniversity());
         user.setDriverLicenseVerified(false);
         user.setIsActive(true);
+        user.setStudentVerificationStatus(User.StudentVerificationStatus.PENDING);
         
         User savedUser = userRepository.save(user);
         return new UserResponse(savedUser);

@@ -35,7 +35,7 @@ public class CreateRoomRequest {
 
     private String description; // 방 설명
 
-    // === 좌표 정보 (새로 추가!) ===
+    // === 좌표 정보 ===
     @NotNull(message = "출발지 위도는 필수입니다")
     private Double startLatitude; // 출발지 위도
 
@@ -96,10 +96,7 @@ public class CreateRoomRequest {
     public void setDestination(String destination) {
         this.destination = destination;
     }
-  
 
-  
-    
     public LocalDateTime getDepartureTime() {
         return departureTime;
     }
