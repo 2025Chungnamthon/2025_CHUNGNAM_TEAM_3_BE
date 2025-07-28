@@ -28,6 +28,7 @@ public class DriverLicense {
     private String driverLicenseType;     // 면허 종류
 
     @Column(name = "driver_license_verified", nullable = false)
+    @Builder.Default
     private Boolean driverLicenseVerified = false;
 
 

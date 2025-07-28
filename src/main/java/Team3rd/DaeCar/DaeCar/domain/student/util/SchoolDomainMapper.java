@@ -24,7 +24,7 @@ public class SchoolDomainMapper {
         schoolToDomain.put("단국대학교", "dankook.ac.kr");
     }
 
-    public String getSchoolByEmail(String email) {
+    public static String getSchoolByEmail(String email) {
         if (email == null || !email.contains("@")) return null;
 
         String domain = email.substring(email.indexOf("@") + 1);
