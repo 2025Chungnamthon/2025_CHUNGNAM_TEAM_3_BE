@@ -12,10 +12,11 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")  // 모든 API에 대해
-                        .allowedOriginPatterns("http://localhost:3000")  // 프론트 주소
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedOriginPatterns("http://localhost:3002", "http://localhost:3000", "http://localhost:3001")  // 프론트 주소
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(true)
+                        .maxAge(3600);  // preflight 캐시 시간
             }
         };
     }
