@@ -52,7 +52,7 @@ public class RoomService {
         Room room = new Room();
         room.setName(request.getName());
         room.setMaxParticipants(request.getMaxParticipants());
-        room.setCurrentParticipants(0);
+        room.setCurrentParticipants(1); // 방 생성자가 첫 번째 참여자
         room.setRoomType(request.getRoomType());
         room.setDepartureLocation(request.getDepartureLocation());
         room.setDestination(request.getDestination());
@@ -61,6 +61,15 @@ public class RoomService {
         room.setDescription(request.getDescription());
         
         Room savedRoom = roomRepository.save(room);
+        
+        // 방 생성자를 CREATOR로 참여자에 추가
+        RoomParticipant creator = new RoomParticipant();
+        creator.setRoomId(savedRoom.getId());
+        creator.setUserId(request.getUserId());
+        creator.setRole(RoomParticipant.ParticipantRole.CREATOR);
+        creator.setIsActive(true);
+        creator.setIsPaid(false);
+        participantRepository.save(creator);
         
         try {
             // Redis 캐시에 저장
@@ -253,6 +262,56 @@ public class RoomService {
             System.err.println("RabbitMQ send error: " + e.getMessage());
         }
     }
+    
+    public void leaveRoom(Long roomId, Long userId) {
+        Room room = getRoomFromCacheOrDb(roomId);
+        if (room == null) {
+            throw new RuntimeException("방을 찾을 수 없습니다.");
+        }
+        
+        Optional<RoomParticipant> participantOpt = 
+            participantRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId);
+        
+        if (!participantOpt.isPresent()) {
+            throw new RuntimeException("해당 방에 참여하지 않은 사용자입니다.");
+        }
+        
+        RoomParticipant participant = participantOpt.get();
+        
+        // 방장이 나가는 경우 방을 삭제
+        if (participant.isCreator()) {
+            deleteRoom(roomId);
+            return;
+        }
+        
+        // 참여자를 비활성화
+        participant.setIsActive(false);
+        participantRepository.save(participant);
+        
+        // 방의 현재 참여자 수 감소
+        room.setCurrentParticipants(room.getCurrentParticipants() - 1);
+        roomRepository.save(room);
+        
+        try {
+            // Redis 캐시 업데이트
+            String cacheKey = ROOM_CACHE_PREFIX + roomId;
+            redisTemplate.opsForValue().set(cacheKey, room, 1, TimeUnit.HOURS);
+            
+            // Redis에서 참여자 정보 삭제
+            String participantsCacheKey = ROOM_PARTICIPANTS_PREFIX + roomId;
+            redisTemplate.opsForSet().remove(participantsCacheKey, userId);
+        } catch (Exception e) {
+            System.err.println("Redis cache error: " + e.getMessage());
+        }
+        
+        try {
+            // RabbitMQ로 방 나가기 이벤트 발송
+            rabbitTemplate.convertAndSend(ROOM_EXCHANGE, "room.left", 
+                new RoomLeaveEvent(roomId, userId));
+        } catch (Exception e) {
+            System.err.println("RabbitMQ send error: " + e.getMessage());
+        }
+    }
 
     public static class RoomJoinEvent {
         private Long roomId;
@@ -277,5 +336,18 @@ public class RoomService {
         public Long getRoomId() {
             return roomId;
         }
+    }
+    
+    public static class RoomLeaveEvent {
+        private Long roomId;
+        private Long userId;
+        
+        public RoomLeaveEvent(Long roomId, Long userId) {
+            this.roomId = roomId;
+            this.userId = userId;
+        }
+        
+        public Long getRoomId() { return roomId; }
+        public Long getUserId() { return userId; }
     }
 }

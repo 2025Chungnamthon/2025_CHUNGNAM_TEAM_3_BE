@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class CreateRoomRequest {
+    @NotNull(message = "사용자 ID는 필수입니다")
+    private Long userId;
+
     @NotBlank(message = "방 이름은 필수입니다")
     private String name;
 
@@ -30,6 +33,14 @@ public class CreateRoomRequest {
     private BigDecimal costPerPerson;
 
     private String description;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
     public String getName() {
         return name;

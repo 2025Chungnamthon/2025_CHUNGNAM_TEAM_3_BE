@@ -164,4 +164,25 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PostMapping("/{roomId}/leave")
+    @Operation(summary = "방 나가기", description = "현재 참여 중인 방에서 나갑니다. 방장이 나가면 방이 삭제됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "방 나가기 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+        @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "내부 서버 오류")
+    })
+    public ResponseEntity<Void> leaveRoom(
+            @Parameter(description = "방 ID", required = true) @PathVariable Long roomId,
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId) {
+        try {
+            roomService.leaveRoom(roomId, userId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
