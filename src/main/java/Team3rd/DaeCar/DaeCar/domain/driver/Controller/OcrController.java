@@ -1,5 +1,6 @@
 package Team3rd.DaeCar.DaeCar.domain.driver.Controller;
 
+import Team3rd.DaeCar.DaeCar.domain.driver.dto.DriverCarnumberResponse;
 import Team3rd.DaeCar.DaeCar.domain.driver.dto.DriverInfoResponse;
 import Team3rd.DaeCar.DaeCar.domain.driver.service.OcrService;
 import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
@@ -28,6 +29,15 @@ public class OcrController {
     ) {
 
         DriverInfoResponse dto = ocrService.extractDriverLicenseInfo(file, userId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/carnumber")
+    public ResponseEntity<DriverCarnumberResponse> extractCarNumber(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId
+    ) {
+        DriverCarnumberResponse dto = ocrService.extractCarNumberInfo(file, userId);
         return ResponseEntity.ok(dto);
     }
 }

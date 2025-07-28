@@ -27,6 +27,9 @@ public class DriverLicense {
     private String driverBirth;           // 생년월일
     private String driverLicenseType;     // 면허 종류
 
+    private String driverCarnumber; //차량 번호
+
+
     @Column(name = "driver_license_verified", nullable = false)
     @Builder.Default
     private Boolean driverLicenseVerified = false;

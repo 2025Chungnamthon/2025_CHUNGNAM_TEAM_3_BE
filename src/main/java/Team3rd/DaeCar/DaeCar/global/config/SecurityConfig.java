@@ -43,7 +43,7 @@ public class SecurityConfig {
 
                         // 공개 API
                         .requestMatchers("/api/rooms/**").permitAll()
-                        .requestMatchers("/api/driver/license").permitAll()
+                        .requestMatchers("/api/driver/**").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
 
                         // 모니터링 및 문서화
