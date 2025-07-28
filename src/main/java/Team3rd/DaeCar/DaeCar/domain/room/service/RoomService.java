@@ -6,6 +6,7 @@ import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomResponse;
 import Team3rd.DaeCar.DaeCar.domain.room.dto.RoomParticipantResponse;
 import Team3rd.DaeCar.DaeCar.domain.room.entity.Room;
 import Team3rd.DaeCar.DaeCar.domain.room.entity.RoomParticipant;
+import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomRepository;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomParticipantRepository;
 import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
@@ -52,6 +53,12 @@ public class RoomService {
         room.setName(request.getName());
         room.setMaxParticipants(request.getMaxParticipants());
         room.setCurrentParticipants(0);
+        room.setRoomType(request.getRoomType());
+        room.setDepartureLocation(request.getDepartureLocation());
+        room.setDestination(request.getDestination());
+        room.setDepartureTime(request.getDepartureTime());
+        room.setCostPerPerson(request.getCostPerPerson());
+        room.setDescription(request.getDescription());
         
         Room savedRoom = roomRepository.save(room);
         
@@ -139,6 +146,25 @@ public class RoomService {
             .map(RoomResponse::new)
             .collect(Collectors.toList());
     }
+    
+    // 타입별 방 조회
+    public List<RoomResponse> getAvailableRoomsByType(RoomType roomType) {
+        return roomRepository.findAvailableRoomsByType(roomType)
+            .stream()
+            .map(RoomResponse::new)
+            .collect(Collectors.toList());
+    }
+    
+    // 카풀방만 조회
+    public List<RoomResponse> getCarpoolRooms() {
+        return getAvailableRoomsByType(RoomType.CARPOOL);
+    }
+    
+    // 택시방만 조회
+    public List<RoomResponse> getTaxiRooms() {
+        return getAvailableRoomsByType(RoomType.TAXI);
+    }
+    
     
     public RoomResponse getRoomById(Long roomId) {
         Room room = getRoomFromCacheOrDb(roomId);

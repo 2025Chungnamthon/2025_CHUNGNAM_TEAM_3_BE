@@ -52,6 +52,12 @@ public class User implements UserDetails {
     @Column(name = "student_verification_status", nullable = false)
     private StudentVerificationStatus studentVerificationStatus = StudentVerificationStatus.PENDING;
     
+    @Column(name = "student_email")
+    private String studentEmail;
+    
+    @Column(name = "student_email_verified", nullable = false)
+    private Boolean studentEmailVerified = false;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -181,6 +187,22 @@ public class User implements UserDetails {
 
     public void setPoints(BigDecimal points) {
         this.points = points;
+    }
+    
+    public String getStudentEmail() {
+        return studentEmail;
+    }
+    
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
+    }
+    
+    public Boolean getStudentEmailVerified() {
+        return studentEmailVerified;
+    }
+    
+    public void setStudentEmailVerified(Boolean studentEmailVerified) {
+        this.studentEmailVerified = studentEmailVerified;
     }
     
     @Override

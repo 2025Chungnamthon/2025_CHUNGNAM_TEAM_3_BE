@@ -1,10 +1,8 @@
 package Team3rd.DaeCar.DaeCar.domain.room.entity;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "rooms")
@@ -31,9 +29,7 @@ public class Room {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-
-
-    // 카풀 관련 필드 추가
+    // 카풀 관련 필드 (develop 브랜치 기준)
     @Column(name = "start_location")
     private String startLocation;
 
@@ -61,55 +57,6 @@ public class Room {
         CANCELLED   // 취소
     }
 
-    // 새로 추가된 필드들의 getter/setter
-    public String getStartLocation() {
-        return startLocation;
-    }
-
-    public void setStartLocation(String startLocation) {
-        this.startLocation = startLocation;
-    }
-
-    public String getEndLocation() {
-        return endLocation;
-    }
-
-    public void setEndLocation(String endLocation) {
-        this.endLocation = endLocation;
-    }
-
-    public LocalDateTime getDepartureTime() {
-        return departureTime;
-    }
-
-    public void setDepartureTime(LocalDateTime departureTime) {
-        this.departureTime = departureTime;
-    }
-
-    public BigDecimal getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(BigDecimal totalCost) {
-        this.totalCost = totalCost;
-    }
-
-    public Long getDriverUserId() {
-        return driverUserId;
-    }
-
-    public void setDriverUserId(Long driverUserId) {
-        this.driverUserId = driverUserId;
-    }
-
-    public RoomStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RoomStatus status) {
-        this.status = status;
-    }
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -121,6 +68,7 @@ public class Room {
         updatedAt = LocalDateTime.now();
     }
 
+    // 기본 필드들의 getter/setter
     public Long getId() {
         return id;
     }
@@ -175,5 +123,54 @@ public class Room {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    // 카풀 관련 필드들의 getter/setter (develop 브랜치 기준)
+    public String getStartLocation() {
+        return startLocation;
+    }
+
+    public void setStartLocation(String startLocation) {
+        this.startLocation = startLocation;
+    }
+
+    public String getEndLocation() {
+        return endLocation;
+    }
+
+    public void setEndLocation(String endLocation) {
+        this.endLocation = endLocation;
+    }
+
+    public LocalDateTime getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(LocalDateTime departureTime) {
+        this.departureTime = departureTime;
+    }
+
+    public BigDecimal getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public Long getDriverUserId() {
+        return driverUserId;
+    }
+
+    public void setDriverUserId(Long driverUserId) {
+        this.driverUserId = driverUserId;
+    }
+
+    public RoomStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RoomStatus status) {
+        this.status = status;
     }
 }
