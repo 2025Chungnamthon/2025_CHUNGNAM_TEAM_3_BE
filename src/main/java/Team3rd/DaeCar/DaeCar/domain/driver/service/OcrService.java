@@ -1,13 +1,11 @@
-package Team3rd.DaeCar.DaeCar.driver.service;
+package Team3rd.DaeCar.DaeCar.domain.driver.service;
 
-import Team3rd.DaeCar.DaeCar.driver.dto.DriverInfoResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import Team3rd.DaeCar.DaeCar.domain.driver.dto.DriverInfoResponse;
+import Team3rd.DaeCar.DaeCar.domain.driver.entity.DriverLicense;
+import Team3rd.DaeCar.DaeCar.domain.driver.repository.DriverLicenseRepository;
+import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
+import Team3rd.DaeCar.DaeCar.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
@@ -18,18 +16,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class OcrService {
+
+    private final DriverLicenseRepository driverLicenseRepository;
+    private final UserRepository userRepository;
+
 
     // 네이버 클라우드 플랫폼에서 발급받은 정보
     private final String SECRET_KEY = "YkRpZUxCcFlmTndya2R3WnBEekJJQkR5SmhOcWhyckc=";
     private final String INVOKE_URL = "https://d3dq6wla1e.apigw.ntruss.com/custom/v1/44617/177d96c3ca5cc5ce76d43719694f88a604a7b883598789b3ddc02756840977c4/infer";
 
-    public DriverInfoResponse extractDriverLicenseInfo(MultipartFile file) {
+    public DriverInfoResponse extractDriverLicenseInfo(MultipartFile file, Long userId) {
         try {
             // 1. 파일을 base64로 인코딩
             byte[] imageBytes = file.getBytes();
@@ -76,7 +77,29 @@ public class OcrService {
                 throw new RuntimeException("OCR 응답이 JSON 형식이 아닙니다: \n" + body);
             }
 
-            return parseOcrResult(body);
+            DriverInfoResponse info = parseOcrResult(body);
+
+            // 5. 유저 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+            // 6. 운전면허 정보 저장
+            DriverLicense license = DriverLicense.builder()
+                    .user(user)
+                    .driverNumber(info.getDriverNumber())
+                    .driverName(info.getDriverName())
+                    .driverBirth(info.getDriverBirth())
+                    .driverLicenseType(info.getDriverLicenseType())
+                    .driverLicenseVerified(true)
+                    .build();
+
+            driverLicenseRepository.save(license);
+
+            // 7. 유저의 운전 인증 상태 업데이트
+            user.setDriverLicenseVerified(true);
+            userRepository.save(user);
+
+            return info;
 
         } catch (Exception e) {
             throw new RuntimeException("OCR 처리 실패: " + e.getMessage(), e);

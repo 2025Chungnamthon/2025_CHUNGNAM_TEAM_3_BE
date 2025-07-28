@@ -9,6 +9,8 @@ import Team3rd.DaeCar.DaeCar.domain.room.entity.RoomParticipant;
 import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomRepository;
 import Team3rd.DaeCar.DaeCar.domain.room.repository.RoomParticipantRepository;
+import Team3rd.DaeCar.DaeCar.domain.user.entity.User;
+import Team3rd.DaeCar.DaeCar.domain.user.repository.UserRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class RoomService {
     
     private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
     private final RoomParticipantRepository participantRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RabbitTemplate rabbitTemplate;
@@ -34,11 +37,12 @@ public class RoomService {
     private static final String ROOM_CREATED_ROUTING_KEY = "room.created";
     private static final String ROOM_JOINED_ROUTING_KEY = "room.joined";
     
-    public RoomService(RoomRepository roomRepository, 
-                      RoomParticipantRepository participantRepository,
-                      RedisTemplate<String, Object> redisTemplate,
-                      RabbitTemplate rabbitTemplate) {
+    public RoomService(RoomRepository roomRepository, UserRepository userRepository,
+                       RoomParticipantRepository participantRepository,
+                       RedisTemplate<String, Object> redisTemplate,
+                       RabbitTemplate rabbitTemplate) {
         this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
         this.participantRepository = participantRepository;
         this.redisTemplate = redisTemplate;
         this.rabbitTemplate = rabbitTemplate;
@@ -80,20 +84,16 @@ public class RoomService {
     
     public RoomResponse joinRoom(JoinRoomRequest request) {
         Long roomId = request.getRoomId();
-        String userId = request.getUserId();
-        
-        // 이미 참여 중인지 확인
-        Optional<RoomParticipant> existingParticipant = 
-            participantRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId);
+        Long userId = request.getUserId();
+
+        Room room = getRoomFromCacheOrDb(roomId);
+        if (room == null) throw new RuntimeException("방 없음");
+
+        Optional<RoomParticipant> existingParticipant =
+                participantRepository.findByRoomIdAndUserIdAndIsActiveTrue(roomId, userId);
         
         if (existingParticipant.isPresent()) {
             throw new RuntimeException("이미 해당 방에 참여 중입니다.");
-        }
-        
-        // 방 정보 조회
-        Room room = getRoomFromCacheOrDb(roomId);
-        if (room == null) {
-            throw new RuntimeException("방을 찾을 수 없습니다.");
         }
         
         // 방이 가득 찬지 확인
@@ -105,6 +105,9 @@ public class RoomService {
         RoomParticipant participant = new RoomParticipant();
         participant.setRoomId(roomId);
         participant.setUserId(userId);
+        participant.setRole(RoomParticipant.ParticipantRole.PASSENGER);
+        participant.setIsActive(true);
+        participant.setIsPaid(false);
         participantRepository.save(participant);
         
         // 방의 현재 참여자 수 증가
@@ -250,23 +253,18 @@ public class RoomService {
             System.err.println("RabbitMQ send error: " + e.getMessage());
         }
     }
-    
+
     public static class RoomJoinEvent {
         private Long roomId;
-        private String userId;
-        
-        public RoomJoinEvent(Long roomId, String userId) {
+        private Long userId;
+
+        public RoomJoinEvent(Long roomId, Long userId) {
             this.roomId = roomId;
             this.userId = userId;
         }
-        
-        public Long getRoomId() {
-            return roomId;
-        }
-        
-        public String getUserId() {
-            return userId;
-        }
+
+        public Long getRoomId() { return roomId; }
+        public Long getUserId() { return userId; }
     }
     
     public static class RoomDeleteEvent {

@@ -15,7 +15,7 @@ public class ChatMessage {
     private Long roomId;
 
     @Column(name = "sender_id", nullable = false)
-    private String senderId;
+    private Long senderId;
 
     @Column(name = "sender_name", nullable = false)
     private String senderName;
@@ -51,11 +51,11 @@ public class ChatMessage {
         this.roomId = roomId;
     }
 
-    public String getSenderId() {
+    public Long getSenderId() {
         return senderId;
     }
 
-    public void setSenderId(String senderId) {
+    public void setSenderId(Long senderId) {
         this.senderId = senderId;
     }
 

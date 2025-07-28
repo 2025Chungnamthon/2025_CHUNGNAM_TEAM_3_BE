@@ -1,10 +1,8 @@
 package Team3rd.DaeCar.DaeCar.domain.room.entity;
 
-import Team3rd.DaeCar.DaeCar.domain.room.enums.RoomType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "rooms")
@@ -31,30 +29,33 @@ public class Room {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    // 카풀/택시 구분을 위한 타입
-    @Enumerated(EnumType.STRING)
-    @Column(name = "room_type", nullable = false)
-    private RoomType roomType;
+    // 카풀 관련 필드 (develop 브랜치 기준)
+    @Column(name = "start_location")
+    private String startLocation;
 
-    // 출발지
-    @Column(name = "departure_location")
-    private String departureLocation;
+    @Column(name = "end_location")
+    private String endLocation;
 
-    // 목적지
-    @Column(name = "destination")
-    private String destination;
-
-    // 출발 시간
     @Column(name = "departure_time")
     private LocalDateTime departureTime;
 
-    // 인당 비용 (택시의 경우 예상 비용, 카풀의 경우 기름값 분담)
-    @Column(name = "cost_per_person", precision = 10, scale = 2)
-    private BigDecimal costPerPerson;
+    @Column(name = "total_cost", precision = 10, scale = 0)
+    private BigDecimal totalCost;
 
-    // 추가 정보 (선택사항)
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "driver_user_id")
+    private Long driverUserId; // 운전자 ID
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RoomStatus status = RoomStatus.WAITING;
+
+    public enum RoomStatus {
+        WAITING,    // 운전자/참여자 대기중
+        MATCHED,    // 운전자 매칭 완료
+        DRIVING,    // 운행중
+        COMPLETED,  // 완료
+        CANCELLED   // 취소
+    }
 
     @PrePersist
     protected void onCreate() {
@@ -67,6 +68,7 @@ public class Room {
         updatedAt = LocalDateTime.now();
     }
 
+    // 기본 필드들의 getter/setter
     public Long getId() {
         return id;
     }
@@ -123,28 +125,21 @@ public class Room {
         this.isActive = isActive;
     }
 
-    public RoomType getRoomType() {
-        return roomType;
+    // 카풀 관련 필드들의 getter/setter (develop 브랜치 기준)
+    public String getStartLocation() {
+        return startLocation;
     }
 
-    public void setRoomType(RoomType roomType) {
-        this.roomType = roomType;
+    public void setStartLocation(String startLocation) {
+        this.startLocation = startLocation;
     }
 
-    public String getDepartureLocation() {
-        return departureLocation;
+    public String getEndLocation() {
+        return endLocation;
     }
 
-    public void setDepartureLocation(String departureLocation) {
-        this.departureLocation = departureLocation;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
+    public void setEndLocation(String endLocation) {
+        this.endLocation = endLocation;
     }
 
     public LocalDateTime getDepartureTime() {
@@ -155,19 +150,27 @@ public class Room {
         this.departureTime = departureTime;
     }
 
-    public BigDecimal getCostPerPerson() {
-        return costPerPerson;
+    public BigDecimal getTotalCost() {
+        return totalCost;
     }
 
-    public void setCostPerPerson(BigDecimal costPerPerson) {
-        this.costPerPerson = costPerPerson;
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
     }
 
-    public String getDescription() {
-        return description;
+    public Long getDriverUserId() {
+        return driverUserId;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDriverUserId(Long driverUserId) {
+        this.driverUserId = driverUserId;
+    }
+
+    public RoomStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RoomStatus status) {
+        this.status = status;
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,7 +66,11 @@ public class User implements UserDetails {
     
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-    
+
+    // 포인트
+    @Column(name = "points", nullable = false, precision = 10, scale = 0)
+    private BigDecimal points = BigDecimal.ZERO;
+
     public enum Gender {
         MALE, FEMALE
     }
@@ -173,6 +178,15 @@ public class User implements UserDetails {
     
     public void setStudentVerificationStatus(StudentVerificationStatus studentVerificationStatus) {
         this.studentVerificationStatus = studentVerificationStatus;
+    }
+
+    // 포인트 관련 getter/setter 추가
+    public BigDecimal getPoints() {
+        return points;
+    }
+
+    public void setPoints(BigDecimal points) {
+        this.points = points;
     }
     
     public String getStudentEmail() {
