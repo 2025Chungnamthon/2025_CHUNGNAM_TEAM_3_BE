@@ -36,6 +36,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/driver/license").permitAll()
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/api/payment/**").permitAll()
+                    .requestMatchers("/api/map/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
