@@ -16,6 +16,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import Team3rd.DaeCar.DaeCar.domain.map.service.NaverMapService;
+import Team3rd.DaeCar.DaeCar.domain.map.dto.RouteResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +34,9 @@ public class RoomService {
     private final RoomParticipantRepository participantRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RabbitTemplate rabbitTemplate;
+
+    private final NaverMapService naverMapService;
+    private final ObjectMapper objectMapper;
     
     private static final String ROOM_CACHE_PREFIX = "room:";
     private static final String ROOM_PARTICIPANTS_PREFIX = "room:participants:";
@@ -40,12 +47,14 @@ public class RoomService {
     public RoomService(RoomRepository roomRepository, UserRepository userRepository,
                        RoomParticipantRepository participantRepository,
                        RedisTemplate<String, Object> redisTemplate,
-                       RabbitTemplate rabbitTemplate) {
+                       RabbitTemplate rabbitTemplate, NaverMapService naverMapService, ObjectMapper objectMapper) {
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
         this.participantRepository = participantRepository;
         this.redisTemplate = redisTemplate;
         this.rabbitTemplate = rabbitTemplate;
+        this.naverMapService = naverMapService;
+        this.objectMapper = objectMapper;
     }
     
     public RoomResponse createRoom(CreateRoomRequest request) {
