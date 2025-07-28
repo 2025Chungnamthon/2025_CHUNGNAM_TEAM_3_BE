@@ -96,7 +96,7 @@ public class CreateRoomRequest {
     public void setDestination(String destination) {
         this.destination = destination;
     }
-    
+
     public LocalDateTime getDepartureTime() {
         return departureTime;
     }
